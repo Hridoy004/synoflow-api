@@ -1,0 +1,15 @@
+model TeamMember {
+  id     String @id @default(uuid())
+  teamId String
+  userId String
+
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  
+  @@map("teamMembers")
+}
