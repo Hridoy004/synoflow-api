@@ -1,6 +1,7 @@
 enum SystemRole {
-  USER
+  SUPER_ADMIN
   ADMIN
+  USER
 }
 
 enum UserStatus {
@@ -96,4 +97,9 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   CANCELLED
+}
+
+enum AuthProvider {
+  GOOGLE
+  CREDENTIAL
 }

@@ -1,9 +1,9 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, {
-	type Application,
-	type Request,
-	type Response,
+  type Application,
+  type Request,
+  type Response,
 } from "express";
 import httpStatus from "http-status";
 import config from "./app/config";
@@ -11,10 +11,10 @@ import config from "./app/config";
 const app: Application = express();
 
 app.use(
-	cors({
-		origin: config.frontend_url,
-		credentials: true,
-	}),
+  cors({
+    origin: config.frontend_url,
+    credentials: true,
+  }),
 );
 
 // Enable URL-encoded form data parsing
@@ -43,10 +43,10 @@ app.use(cookieParser());
 
 // Basic route
 app.get("/", async (req: Request, res: Response) => {
-	res.status(httpStatus.OK).json({
-		success: true,
-		message: "Welcome to PH Healthcare System Backend",
-	});
+  res.status(httpStatus.OK).json({
+    success: true,
+    message: "Welcome to PH Healthcare System Backend",
+  });
 });
 
 export default app;

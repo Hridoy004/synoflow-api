@@ -8,22 +8,21 @@ model Organization {
 
   createdById String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   createdBy User @relation("OrganizationCreator", fields: [createdById], references: [id])
 
-  members OrganizationMember[]
-  teams Team[]
-  projects Project[]
-  labels Label[]
-  activities Activity[]
+  members      OrganizationMember[]
+  teams        Team[]
+  projects     Project[]
+  labels       Label[]
+  activities   Activity[]
   subscription Subscription?
-  payments Payment[]
+  payments     Payment[]
 
   @@index([createdById])
   @@index([status])
-  
   @@map("organizations")
 }

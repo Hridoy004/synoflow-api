@@ -1,14 +1,14 @@
 model Attachment {
-  id     String @id @default(uuid())
-  taskId String
-  userId String
+  id       String  @id @default(uuid())
+  taskId   String
+  userId   String
   fileName String
   fileUrl  String
   publicId String?
   mimeType String?
   size     Int?
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   deletedAt DateTime?
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
@@ -16,6 +16,5 @@ model Attachment {
 
   @@index([taskId])
   @@index([userId])
-  
   @@map("attachments")
 }

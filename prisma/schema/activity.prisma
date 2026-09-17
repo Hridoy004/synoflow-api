@@ -12,11 +12,10 @@ model Activity {
   createdAt DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
 
   @@index([organizationId, createdAt])
   @@index([userId])
   @@index([entityType, entityId])
-  
   @@map("activities")
 }

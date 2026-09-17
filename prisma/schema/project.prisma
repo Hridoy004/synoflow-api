@@ -1,33 +1,32 @@
 model Project {
-  id             String @id @default(uuid())
+  id             String  @id @default(uuid())
   organizationId String
   teamId         String?
   createdById    String
-  name        String
-  key         String
-  description String?
+  name           String
+  key            String
+  description    String?
 
   status ProjectStatus @default(PLANNING)
 
   startDate DateTime?
   dueDate   DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  team Team? @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  createdBy User @relation("ProjectCreator", fields: [createdById], references: [id])
+  team         Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  createdBy    User         @relation("ProjectCreator", fields: [createdById], references: [id])
 
   members ProjectMember[]
   sprints Sprint[]
-  tasks Task[]
+  tasks   Task[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
   @@index([teamId])
   @@index([createdById])
   @@index([status])
-  
   @@map("project")
 }

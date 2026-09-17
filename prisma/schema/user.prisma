@@ -1,15 +1,20 @@
 model User {
-  id           String     @id @default(uuid())
-  name         String
-  email        String     @unique
-  passwordHash String
-  avatar       String?
-  systemRole   SystemRole @default(USER)
-  status       UserStatus @default(ACTIVE)
-
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?
+  id                 String       @id @default(uuid())
+  name               String
+  email              String       @unique
+  password           String?
+  googleId           String?      @unique
+  authProvider       AuthProvider @default(CREDENTIAL)
+  emailVerified      Boolean      @default(false)
+  imageUrl           String       @default("")
+  imagePublicId      String       @default("")
+  systemRole         SystemRole   @default(USER)
+  status             UserStatus   @default(ACTIVE)
+  needPasswordChange Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  isDeleted          Boolean      @default(false)
+  deletedAt          DateTime?
 
   organizationMemberships OrganizationMember[]
   teamMemberships         TeamMember[]
@@ -18,13 +23,13 @@ model User {
   assignedTasks Task[] @relation("TaskAssignee")
   createdTasks  Task[] @relation("TaskCreator")
 
-  comments Comment[]
+  comments    Comment[]
   attachments Attachment[]
-  activities Activity[]
-  payments Payment[]
+  activities  Activity[]
+  payments    Payment[]
 
   createdOrganizations Organization[] @relation("OrganizationCreator")
-  createdProjects      Project[] @relation("ProjectCreator")
+  createdProjects      Project[]      @relation("ProjectCreator")
 
   @@map("users")
 }

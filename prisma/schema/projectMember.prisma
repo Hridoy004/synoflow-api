@@ -6,10 +6,9 @@ model ProjectMember {
   createdAt DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId],references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
   @@index([userId])
-  
   @@map("projectMember")
 }
