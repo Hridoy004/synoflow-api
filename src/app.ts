@@ -7,6 +7,7 @@ import express, {
 } from "express";
 import httpStatus from "http-status";
 import config from "./app/config";
+import { AuthRoutes } from "./app/module/auth/auth.route";
 
 const app: Application = express();
 
@@ -23,6 +24,8 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware to parse JSON bodies
 app.use(express.json());
 app.use(cookieParser());
+
+app.use("/api/v1/auth", AuthRoutes);
 
 // app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
 // 	try {
@@ -41,12 +44,14 @@ app.use(cookieParser());
 // 	}
 // });
 
-// Basic route
 app.get("/", async (req: Request, res: Response) => {
   res.status(httpStatus.OK).json({
     success: true,
-    message: "Welcome to PH Healthcare System Backend",
+    message: "Welcome to Synoflow Backend",
   });
 });
+
+// app.use(globalErrorHandler);
+// app.use(notFound);
 
 export default app;
