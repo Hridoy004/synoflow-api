@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Synoflow</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #f4f8ff 0%, #eef3f9 100%);
+        color: #122033;
+      }
+      .wrapper {
+        width: 100%;
+        background: linear-gradient(180deg, #f4f8ff 0%, #eef3f9 100%);
+        padding: 40px 16px;
+      }
+      .container {
+        max-width: 620px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e3ebf6;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(18, 32, 51, 0.08);
+      }
+      .header {
+        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+        padding: 28px 32px 20px;
+        text-align: center;
+      }
+      .brand {
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: #ffffff;
+      }
+      .brand small {
+        font-size: 12px;
+        opacity: 0.9;
+        font-weight: 500;
+        letter-spacing: 2px;
+        display: block;
+        margin-top: 6px;
+        text-transform: uppercase;
+      }
+      .content {
+        padding: 32px 32px 24px;
+      }
+      h1 {
+        margin: 0 0 14px;
+        font-size: 30px;
+        line-height: 1.2;
+        color: #122033;
+      }
+      p {
+        margin: 0 0 18px;
+        font-size: 16px;
+        line-height: 1.7;
+        color: #4b5d78;
+      }
+      .feature-box {
+        background: linear-gradient(135deg, #f7faff 0%, #edf5ff 100%);
+        border: 1px solid #dfeeff;
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin: 22px 0;
+      }
+      .feature-box strong {
+        color: #10213d;
+      }
+      .footer {
+        padding: 18px 32px 30px;
+        text-align: center;
+        color: #70819c;
+        font-size: 12px;
+      }
+      @media (max-width: 620px) {
+        .content,
+        .footer,
+        .header {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <div class="header">
+          <div class="brand">Synoflow <small>Welcome</small></div>
+        </div>
+
+        <div class="content">
+          <h1>Welcome to Synoflow, <%= name %>!</h1>
+          <p>
+            Your account is ready, and your workspace is set up for smarter,
+            more efficient collaboration.
+          </p>
+
+          <div class="feature-box">
+            <strong>What you can do next:</strong><br />
+            Manage work securely, streamline team operations, and stay in
+            control of every project milestone.
+          </div>
+
+          <p>
+            We’re glad to have you with us. Synoflow is designed to help teams
+            move faster with clarity and confidence.
+          </p>
+        </div>
+
+        <div class="footer">
+          © 2026 Synoflow. All rights reserved.<br />
+          Efficiency in motion.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

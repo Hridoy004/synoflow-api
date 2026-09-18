@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { SystemRole } from "../../../generated/prisma/enums";
 import { auth } from "../../middleware/checkAuth";
 import { validateRequest } from "../../middleware/validateRequest";
 import { AuthController } from "./auth.controller";
@@ -8,14 +9,14 @@ const router = Router();
 
 router.post(
   "/register",
-  validateRequest(UserValidation.PatientRegistrationZodSchema),
-  AuthController.registerPatient,
+  validateRequest(UserValidation.UserRegistrationZodSchema),
+  AuthController.register,
 );
 
 router.post(
   "/verify-email",
-  validateRequest(UserValidation.PatientEmailVerifyZodSchema),
-  AuthController.verifyPatientEmail,
+  validateRequest(UserValidation.UserEmailVerifyZodSchema),
+  AuthController.verifyUserEmail,
 );
 
 router.post(
@@ -26,13 +27,11 @@ router.post(
 
 router.get(
   "/me",
-  auth(Role.ADMIN, Role.DOCTOR, Role.PATIENT, Role.SUPER_ADMIN),
-  // validateRequest
+  auth(SystemRole.ADMIN, SystemRole.USER, SystemRole.SUPER_ADMIN),
   AuthController.getMe,
 );
 
 router.post("/refresh-token", AuthController.refreshToken);
-
 router.post("/google", AuthController.googleLogin);
 
 router.post(
