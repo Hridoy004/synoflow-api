@@ -1,5 +1,4 @@
 import { createClient } from "redis";
-
 import config from "../config";
 
 export const redisClient = createClient({
@@ -13,4 +12,12 @@ export const redisClient = createClient({
 
 redisClient.on("error", (err) => {
   console.error("Redis Client Error:", err.message);
+});
+
+redisClient.on("reconnecting", () => {
+  console.log("Redis reconnecting...");
+});
+
+redisClient.on("ready", () => {
+  console.log("Redis ready!");
 });
