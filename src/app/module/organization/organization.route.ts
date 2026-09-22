@@ -2,6 +2,7 @@ import { Router } from "express";
 import { auth } from "../../middleware/checkAuth";
 import { validateRequest } from "../../middleware/validateRequest";
 import { OrganizationMemberRoutes } from "../organization-member/organization-member.route";
+import { OrganizationTeamRoutes } from "../team/team.route";
 import { OrganizationController } from "./organization.controller";
 import { OrganizationValidation } from "./organization.validation";
 
@@ -17,6 +18,7 @@ router.post(
 router.get("/", auth(), OrganizationController.getMyOrganizations);
 
 router.use("/:organizationId/members", OrganizationMemberRoutes);
+router.use("/:organizationId/teams", OrganizationTeamRoutes);
 
 router.get("/:organizationId", auth(), OrganizationController.getOrganization);
 
