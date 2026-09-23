@@ -1,27 +1,27 @@
 export interface IAddOrganizationMemberPayload {
-  email: string;
-  role: "MEMBER";
+	email: string;
+	role: "MEMBER";
 }
 
 export interface IUpdateOrganizationMemberPayload {
-  role: "MEMBER";
+	role: "MEMBER";
 }
 
 export interface IInviteOrganizationMemberPayload {
-  email: string;
+	email: string;
 }
 
 export interface IAcceptOrganizationInvitationPayload {
-  token: string;
+	token: string;
 }
 
 export interface IOrganizationMemberParams {
-  organizationId: string;
-  memberId?: string;
+	organizationId: string;
+	memberId?: string;
 }
 
 export interface IOrganizationMemberQuery {
-  page?: number;
-  limit?: number;
-  search?: string;
+	page?: number;
+	limit?: number;
+	search?: string;
 }

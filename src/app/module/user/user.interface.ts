@@ -1,3 +1,3 @@
 export interface UpdateMyProfilePayload {
-  name?: string;
+	name?: string;
 }

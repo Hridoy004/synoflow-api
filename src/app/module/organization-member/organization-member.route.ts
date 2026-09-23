@@ -7,37 +7,37 @@ import { OrganizationMemberValidation } from "./organization-member.validation";
 const router = Router({ mergeParams: true });
 
 router.post(
-  "/",
-  auth(),
-  validateRequest(OrganizationMemberValidation.addOrganizationMemberSchema),
-  OrganizationMemberController.addMember,
+	"/",
+	auth(),
+	validateRequest(OrganizationMemberValidation.addOrganizationMemberSchema),
+	OrganizationMemberController.addMember,
 );
 
 router.get("/", auth(), OrganizationMemberController.getMembers);
 
 router.patch(
-  "/:memberId",
-  auth(),
-  validateRequest(OrganizationMemberValidation.updateOrganizationMemberSchema),
-  OrganizationMemberController.updateMember,
+	"/:memberId",
+	auth(),
+	validateRequest(OrganizationMemberValidation.updateOrganizationMemberSchema),
+	OrganizationMemberController.updateMember,
 );
 
 router.delete("/:memberId", auth(), OrganizationMemberController.removeMember);
 
 router.post(
-  "/invite",
-  auth(),
-  validateRequest(OrganizationMemberValidation.inviteOrganizationMemberSchema),
-  OrganizationMemberController.inviteMember,
+	"/invite",
+	auth(),
+	validateRequest(OrganizationMemberValidation.inviteOrganizationMemberSchema),
+	OrganizationMemberController.inviteMember,
 );
 
 router.post(
-  "/accept",
-  auth(),
-  validateRequest(
-    OrganizationMemberValidation.acceptOrganizationInvitationSchema,
-  ),
-  OrganizationMemberController.acceptInvitation,
+	"/accept",
+	auth(),
+	validateRequest(
+		OrganizationMemberValidation.acceptOrganizationInvitationSchema,
+	),
+	OrganizationMemberController.acceptInvitation,
 );
 
 export const OrganizationMemberRoutes = router;

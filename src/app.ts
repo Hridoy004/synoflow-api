@@ -11,6 +11,11 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { AuthRoutes } from "./app/module/auth/auth.route";
 import { OrganizationRoutes } from "./app/module/organization/organization.route";
+import { ProjectRoutes } from "./app/module/project/project.route";
+import {
+  ProjectSprintRoutes,
+  SprintRoutes,
+} from "./app/module/sprint/sprint.route";
 import { TeamRoutes } from "./app/module/team/team.route";
 import { UserRoutes } from "./app/module/user/user.route";
 
@@ -34,6 +39,9 @@ app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/user", UserRoutes);
 app.use("/api/v1/organizations", OrganizationRoutes);
 app.use("/api/v1/teams", TeamRoutes);
+app.use("/api/v1/projects", ProjectRoutes);
+app.use("/api/v1/projects/:projectId/sprints", ProjectSprintRoutes);
+app.use("/api/v1/sprints", SprintRoutes);
 
 // app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
 // 	try {

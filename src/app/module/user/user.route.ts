@@ -9,17 +9,17 @@ import { UserValidation } from "./user.validation";
 const router = Router();
 
 router.patch(
-  "/me",
-  auth(),
-  validateRequest(UserValidation.updateMyProfileSchema),
-  UserController.updateMyProfile,
+	"/me",
+	auth(),
+	validateRequest(UserValidation.updateMyProfileSchema),
+	UserController.updateMyProfile,
 );
 
 router.patch(
-  "/profile-image",
-  auth(SystemRole.SUPER_ADMIN, SystemRole.ADMIN, SystemRole.USER),
-  upload.single("profileImage"),
-  UserController.uploadProfileImage,
+	"/profile-image",
+	auth(SystemRole.SUPER_ADMIN, SystemRole.ADMIN, SystemRole.USER),
+	upload.single("profileImage"),
+	UserController.uploadProfileImage,
 );
 
 export const UserRoutes = router;

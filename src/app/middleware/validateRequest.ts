@@ -23,7 +23,16 @@ export const validateRequest = (
       );
     }
 
-    req[source] = result.data;
+    if (source === "query") {
+      Object.defineProperty(req, "query", {
+        value: result.data,
+        configurable: true,
+        writable: true,
+        enumerable: true,
+      });
+    } else {
+      req[source] = result.data;
+    }
 
     next();
   });
