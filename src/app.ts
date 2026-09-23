@@ -9,13 +9,23 @@ import httpStatus from "http-status";
 import config from "./app/config";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
+import {
+  AttachmentRoutes,
+  TaskAttachmentRoutes,
+} from "./app/module/attachment/attachment.route";
 import { AuthRoutes } from "./app/module/auth/auth.route";
+import {
+  CommentRoutes,
+  TaskCommentRoutes,
+} from "./app/module/comment/comment.route";
+import { LabelRoutes, TaskLabelRoutes } from "./app/module/label/label.route";
 import { OrganizationRoutes } from "./app/module/organization/organization.route";
 import { ProjectRoutes } from "./app/module/project/project.route";
 import {
   ProjectSprintRoutes,
   SprintRoutes,
 } from "./app/module/sprint/sprint.route";
+import { ProjectTaskRoutes, TaskRoutes } from "./app/module/task/task.route";
 import { TeamRoutes } from "./app/module/team/team.route";
 import { UserRoutes } from "./app/module/user/user.route";
 
@@ -40,7 +50,15 @@ app.use("/api/v1/user", UserRoutes);
 app.use("/api/v1/organizations", OrganizationRoutes);
 app.use("/api/v1/teams", TeamRoutes);
 app.use("/api/v1/projects", ProjectRoutes);
+app.use("/api/v1/projects/:projectId/tasks", ProjectTaskRoutes);
 app.use("/api/v1/projects/:projectId/sprints", ProjectSprintRoutes);
+app.use("/api/v1/tasks", TaskRoutes);
+app.use("/api/v1/tasks/:taskId/labels", TaskLabelRoutes);
+app.use("/api/v1/tasks/:taskId/comments", TaskCommentRoutes);
+app.use("/api/v1/tasks/:taskId/attachments", TaskAttachmentRoutes);
+app.use("/api/v1/comments", CommentRoutes);
+app.use("/api/v1/attachments", AttachmentRoutes);
+app.use("/api/v1/labels", LabelRoutes);
 app.use("/api/v1/sprints", SprintRoutes);
 
 // app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
