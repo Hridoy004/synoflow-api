@@ -10,6 +10,10 @@ import config from "./app/config";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import {
+  OrganizationActivityRoutes,
+  TaskActivityRoutes,
+} from "./app/module/activity/activity.route";
+import {
   AttachmentRoutes,
   TaskAttachmentRoutes,
 } from "./app/module/attachment/attachment.route";
@@ -48,12 +52,17 @@ app.use(cookieParser());
 app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/user", UserRoutes);
 app.use("/api/v1/organizations", OrganizationRoutes);
+app.use(
+  "/api/v1/organizations/:organizationId/activities",
+  OrganizationActivityRoutes,
+);
 app.use("/api/v1/teams", TeamRoutes);
 app.use("/api/v1/projects", ProjectRoutes);
 app.use("/api/v1/projects/:projectId/tasks", ProjectTaskRoutes);
 app.use("/api/v1/projects/:projectId/sprints", ProjectSprintRoutes);
 app.use("/api/v1/tasks", TaskRoutes);
 app.use("/api/v1/tasks/:taskId/labels", TaskLabelRoutes);
+app.use("/api/v1/tasks/:taskId/activities", TaskActivityRoutes);
 app.use("/api/v1/tasks/:taskId/comments", TaskCommentRoutes);
 app.use("/api/v1/tasks/:taskId/attachments", TaskAttachmentRoutes);
 app.use("/api/v1/comments", CommentRoutes);
