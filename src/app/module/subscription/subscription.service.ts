@@ -10,6 +10,7 @@ import {
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import { createActivity } from "../activity/activity.service";
+import { PlanLimitService } from "./plan-limit.service";
 import type {
   ICreateSubscriptionPayload,
   ISubscriptionSummary,
@@ -27,6 +28,13 @@ const subscriptionSelect = {
   createdAt: true,
   updatedAt: true,
 } as const;
+
+const serializeSubscription = <T extends { plan: SubscriptionPlan }>(
+  subscription: T,
+): T & { limits: ReturnType<typeof PlanLimitService.getPlanLimits> } => ({
+  ...subscription,
+  limits: PlanLimitService.getPlanLimits(subscription.plan),
+});
 
 const getActiveOrganization = async (organizationId: string) => {
   const organization = await prisma.organization.findFirst({
@@ -102,7 +110,8 @@ const getSubscription = async (
   await getActiveOrganization(organizationId);
   await getOrganizationMembership(organizationId, userId);
 
-  return getSubscriptionRecord(organizationId);
+  const subscription = await getSubscriptionRecord(organizationId);
+  return serializeSubscription(subscription);
 };
 
 const createSubscription = async (
@@ -126,13 +135,23 @@ const createSubscription = async (
   }
 
   const plan = payload.plan ?? SubscriptionPlan.FREE;
+  const currentPeriodStart = new Date();
+  const currentPeriodEnd =
+    plan === SubscriptionPlan.FREE
+      ? null
+      : new Date(currentPeriodStart.getTime());
+
+  if (currentPeriodEnd) {
+    currentPeriodEnd.setUTCMonth(currentPeriodEnd.getUTCMonth() + 1);
+  }
 
   const subscription = await prisma.subscription.create({
     data: {
       organizationId,
       plan,
       status: SubscriptionStatus.ACTIVE,
-      currentPeriodStart: new Date(),
+      currentPeriodStart,
+      currentPeriodEnd,
       cancelAtPeriodEnd: false,
     },
     select: subscriptionSelect,
@@ -150,7 +169,7 @@ const createSubscription = async (
     },
   });
 
-  return subscription;
+  return serializeSubscription(subscription);
 };
 
 const updateSubscription = async (
@@ -197,7 +216,7 @@ const updateSubscription = async (
     },
   });
 
-  return updatedSubscription;
+  return serializeSubscription(updatedSubscription);
 };
 
 const cancelSubscription = async (organizationId: string, userId: string) => {
@@ -240,7 +259,7 @@ const cancelSubscription = async (organizationId: string, userId: string) => {
     },
   });
 
-  return updatedSubscription;
+  return serializeSubscription(updatedSubscription);
 };
 
 export const SubscriptionServices = {

@@ -8,6 +8,7 @@ import {
 } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
+import { PlanLimitService } from "../subscription/plan-limit.service";
 import type {
   ICreateTaskPayload,
   IMoveTaskPayload,
@@ -366,6 +367,7 @@ const createTask = async (
   await assertProjectAccess(projectId, userId);
   await assertValidAssigneeForProject(projectId, payload.assigneeId ?? null);
   await assertValidSprintForProject(projectId, payload.sprintId ?? null);
+  await PlanLimitService.checkTaskLimit(projectId);
   const task = await prisma.task.create({
     data: {
       projectId,

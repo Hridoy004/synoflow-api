@@ -8,6 +8,7 @@ import { cloudinary } from "../../lib/cloudinary";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import { createActivity } from "../activity/activity.service";
+import { PlanLimitService } from "../subscription/plan-limit.service";
 import type { IAttachmentQuery } from "./attachment.interface";
 
 const parsePositiveInt = (
@@ -152,6 +153,8 @@ const uploadAttachment = async (
 
   const { organizationId } = await getTaskAccessContext(taskId, userId);
 
+  await PlanLimitService.checkStorageLimit(organizationId, file.size ?? 0);
+
   const allowedMimeTypes = [
     "image/jpeg",
     "image/png",
@@ -165,13 +168,6 @@ const uploadAttachment = async (
 
   if (!allowedMimeTypes.includes(file.mimetype)) {
     throw new AppError(httpStatus.BAD_REQUEST, "Unsupported file type.");
-  }
-
-  if ((file.size ?? 0) > 10 * 1024 * 1024) {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      "File size must be less than 10MB.",
-    );
   }
 
   const uploadResult = await new Promise<{

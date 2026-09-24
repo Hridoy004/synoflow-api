@@ -7,6 +7,15 @@ export interface ICreateSubscriptionPayload {
   plan?: SubscriptionPlan;
 }
 
+export interface IPlanLimitSummary {
+  members: number;
+  teams: number;
+  projects: number;
+  tasksPerProject: number;
+  storageBytes: number;
+  maxFileSizeBytes: number;
+}
+
 export interface IUpdateSubscriptionPayload {
   plan?: SubscriptionPlan;
   cancelAtPeriodEnd?: boolean;
@@ -22,4 +31,5 @@ export interface ISubscriptionSummary {
   cancelAtPeriodEnd: boolean;
   createdAt: Date;
   updatedAt: Date;
+  limits?: IPlanLimitSummary;
 }
