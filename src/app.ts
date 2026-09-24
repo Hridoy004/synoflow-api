@@ -29,6 +29,7 @@ import {
   ProjectSprintRoutes,
   SprintRoutes,
 } from "./app/module/sprint/sprint.route";
+import { SubscriptionRoutes } from "./app/module/subscription/subscription.route";
 import { ProjectTaskRoutes, TaskRoutes } from "./app/module/task/task.route";
 import { TeamRoutes } from "./app/module/team/team.route";
 import { UserRoutes } from "./app/module/user/user.route";
@@ -52,6 +53,10 @@ app.use(cookieParser());
 app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/user", UserRoutes);
 app.use("/api/v1/organizations", OrganizationRoutes);
+app.use(
+  "/api/v1/organizations/:organizationId/subscription",
+  SubscriptionRoutes,
+);
 app.use(
   "/api/v1/organizations/:organizationId/activities",
   OrganizationActivityRoutes,
