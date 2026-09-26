@@ -82,13 +82,15 @@ enum SubscriptionPlan {
 }
 
 enum SubscriptionStatus {
+  PENDING
   ACTIVE
+  PAST_DUE
   CANCELLED
   EXPIRED
-  PAST_DUE
 }
 
 enum PaymentProvider {
+  BKASH
   STRIPE
 }
 

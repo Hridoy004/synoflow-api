@@ -4,13 +4,14 @@ import {
   ActivityEntity,
   OrganizationRole,
   OrganizationStatus,
+  PaymentStatus,
   SubscriptionPlan,
   SubscriptionStatus,
 } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import { createActivity } from "../activity/activity.service";
-import { PlanLimitService } from "./plan-limit.service";
+import { getPlanLimits } from "./plan.config";
 import type {
   ICreateSubscriptionPayload,
   ISubscriptionSummary,
@@ -31,10 +32,7 @@ const subscriptionSelect = {
 
 const serializeSubscription = <T extends { plan: SubscriptionPlan }>(
   subscription: T,
-): T & { limits: ReturnType<typeof PlanLimitService.getPlanLimits> } => ({
-  ...subscription,
-  limits: PlanLimitService.getPlanLimits(subscription.plan),
-});
+) => ({ ...subscription, limits: getPlanLimits(subscription.plan) });
 
 const getActiveOrganization = async (organizationId: string) => {
   const organization = await prisma.organization.findFirst({
@@ -61,10 +59,7 @@ const getOrganizationMembership = async (
     where: {
       organizationId,
       userId,
-      organization: {
-        status: OrganizationStatus.ACTIVE,
-        deletedAt: null,
-      },
+      organization: { status: OrganizationStatus.ACTIVE, deletedAt: null },
     },
     select: { role: true },
   });
@@ -122,51 +117,51 @@ const createSubscription = async (
   await getActiveOrganization(organizationId);
   await assertOwner(organizationId, userId);
 
-  const existingSubscription = await prisma.subscription.findUnique({
-    where: { organizationId },
-    select: { id: true, status: true },
-  });
-
-  if (existingSubscription) {
-    throw new AppError(
-      httpStatus.CONFLICT,
-      "An active subscription already exists for this organization.",
-    );
-  }
-
   const plan = payload.plan ?? SubscriptionPlan.FREE;
-  const currentPeriodStart = new Date();
-  const currentPeriodEnd =
-    plan === SubscriptionPlan.FREE
-      ? null
-      : new Date(currentPeriodStart.getTime());
+  const isFreePlan = plan === SubscriptionPlan.FREE;
 
-  if (currentPeriodEnd) {
-    currentPeriodEnd.setUTCMonth(currentPeriodEnd.getUTCMonth() + 1);
-  }
+  // Transaction: prevents two simultaneous requests from both passing the
+  // "does a subscription already exist" check and both inserting one.
+  const subscription = await prisma.$transaction(async (tx) => {
+    const existing = await tx.subscription.findUnique({
+      where: { organizationId },
+      select: { id: true },
+    });
 
-  const subscription = await prisma.subscription.create({
-    data: {
-      organizationId,
-      plan,
-      status: SubscriptionStatus.ACTIVE,
-      currentPeriodStart,
-      currentPeriodEnd,
-      cancelAtPeriodEnd: false,
-    },
-    select: subscriptionSelect,
-  });
+    if (existing) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "Subscription already exists for this organization.",
+      );
+    }
 
-  await createActivity({
-    organizationId,
-    userId,
-    entityType: ActivityEntity.SUBSCRIPTION,
-    entityId: subscription.id,
-    action: ActivityAction.CREATE,
-    metadata: {
-      plan: subscription.plan,
-      status: subscription.status,
-    },
+    const created = await tx.subscription.create({
+      data: {
+        organizationId,
+        plan,
+        status: isFreePlan
+          ? SubscriptionStatus.ACTIVE
+          : SubscriptionStatus.PENDING,
+        currentPeriodStart: isFreePlan ? new Date() : null,
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+      },
+      select: subscriptionSelect,
+    });
+
+    await createActivity(
+      {
+        organizationId,
+        userId,
+        entityType: ActivityEntity.SUBSCRIPTION,
+        entityId: created.id,
+        action: ActivityAction.CREATE,
+        metadata: { plan: created.plan, status: created.status },
+      },
+      tx, // createActivity needs to accept + use this, see MIGRATION_NOTES.md
+    );
+
+    return created;
   });
 
   return serializeSubscription(subscription);
@@ -192,28 +187,35 @@ const updateSubscription = async (
     );
   }
 
-  const updatedSubscription = await prisma.subscription.update({
-    where: { organizationId },
-    data: {
-      ...(payload.plan ? { plan: payload.plan } : {}),
-      ...(payload.cancelAtPeriodEnd !== undefined
-        ? { cancelAtPeriodEnd: payload.cancelAtPeriodEnd }
-        : {}),
-    },
-    select: subscriptionSelect,
-  });
+  const updatedSubscription = await prisma.$transaction(async (tx) => {
+    const updated = await tx.subscription.update({
+      where: { organizationId },
+      data: {
+        ...(payload.plan ? { plan: payload.plan } : {}),
+        ...(payload.cancelAtPeriodEnd !== undefined
+          ? { cancelAtPeriodEnd: payload.cancelAtPeriodEnd }
+          : {}),
+      },
+      select: subscriptionSelect,
+    });
 
-  await createActivity({
-    organizationId,
-    userId,
-    entityType: ActivityEntity.SUBSCRIPTION,
-    entityId: updatedSubscription.id,
-    action: ActivityAction.UPDATE,
-    metadata: {
-      previousPlan: currentSubscription.plan,
-      nextPlan: updatedSubscription.plan,
-      cancelAtPeriodEnd: updatedSubscription.cancelAtPeriodEnd,
-    },
+    await createActivity(
+      {
+        organizationId,
+        userId,
+        entityType: ActivityEntity.SUBSCRIPTION,
+        entityId: updated.id,
+        action: ActivityAction.UPDATE,
+        metadata: {
+          previousPlan: currentSubscription.plan,
+          nextPlan: updated.plan,
+          cancelAtPeriodEnd: updated.cancelAtPeriodEnd,
+        },
+      },
+      tx,
+    );
+
+    return updated;
   });
 
   return serializeSubscription(updatedSubscription);
@@ -239,27 +241,135 @@ const cancelSubscription = async (organizationId: string, userId: string) => {
     );
   }
 
-  const updatedSubscription = await prisma.subscription.update({
-    where: { organizationId },
-    data: {
-      cancelAtPeriodEnd: true,
-    },
-    select: subscriptionSelect,
-  });
+  const updatedSubscription = await prisma.$transaction(async (tx) => {
+    const updated = await tx.subscription.update({
+      where: { organizationId },
+      data: { cancelAtPeriodEnd: true },
+      select: subscriptionSelect,
+    });
 
-  await createActivity({
-    organizationId,
-    userId,
-    entityType: ActivityEntity.SUBSCRIPTION,
-    entityId: updatedSubscription.id,
-    action: ActivityAction.UPDATE,
-    metadata: {
-      cancelAtPeriodEnd: true,
-      status: updatedSubscription.status,
-    },
+    await createActivity(
+      {
+        organizationId,
+        userId,
+        entityType: ActivityEntity.SUBSCRIPTION,
+        entityId: updated.id,
+        action: ActivityAction.UPDATE,
+        metadata: { cancelAtPeriodEnd: true, status: updated.status },
+      },
+      tx,
+    );
+
+    return updated;
   });
 
   return serializeSubscription(updatedSubscription);
+};
+
+// Webhook can deliver the same event twice — `processedAt` (new column,
+// see MIGRATION_NOTES.md) is claimed with a conditional update so only the
+// first delivery actually activates the subscription.
+const activatePaidSubscriptionForPayment = async (paymentId: string) => {
+  return prisma.$transaction(async (tx) => {
+    const payment = await tx.payment.findUnique({
+      where: { id: paymentId },
+      select: {
+        id: true,
+        organizationId: true,
+        userId: true,
+        status: true,
+        metadata: true,
+        processedAt: true,
+      },
+    });
+
+    if (!payment) {
+      throw new AppError(httpStatus.NOT_FOUND, "Payment not found.");
+    }
+
+    const metadata = payment.metadata as Record<string, unknown> | null;
+    const plan = metadata?.plan as SubscriptionPlan | undefined;
+
+    if (
+      payment.status !== PaymentStatus.SUCCESS ||
+      !plan ||
+      plan === SubscriptionPlan.FREE
+    ) {
+      return { result: "not_processed" } as const;
+    }
+
+    if (payment.processedAt) {
+      return { result: "already_processed" } as const;
+    }
+
+    const claim = await tx.payment.updateMany({
+      where: { id: paymentId, processedAt: null },
+      data: { processedAt: new Date() },
+    });
+
+    if (claim.count === 0) {
+      return { result: "already_processed" } as const;
+    }
+
+    const currentSubscription = await tx.subscription.findUnique({
+      where: { organizationId: payment.organizationId },
+      select: { id: true, plan: true, status: true, currentPeriodEnd: true },
+    });
+
+    const currentPeriodStart =
+      currentSubscription?.currentPeriodEnd ?? new Date();
+    const currentPeriodEnd = new Date(currentPeriodStart);
+    currentPeriodEnd.setUTCMonth(currentPeriodEnd.getUTCMonth() + 1);
+
+    const subscription = currentSubscription
+      ? await tx.subscription.update({
+          where: { id: currentSubscription.id },
+          data: {
+            plan,
+            status: SubscriptionStatus.ACTIVE,
+            currentPeriodStart,
+            currentPeriodEnd,
+            cancelAtPeriodEnd: false,
+          },
+        })
+      : await tx.subscription.create({
+          data: {
+            organizationId: payment.organizationId,
+            plan,
+            status: SubscriptionStatus.ACTIVE,
+            currentPeriodStart,
+            currentPeriodEnd,
+            cancelAtPeriodEnd: false,
+          },
+        });
+
+    await createActivity(
+      {
+        organizationId: payment.organizationId,
+        userId: payment.userId,
+        entityType: ActivityEntity.SUBSCRIPTION,
+        entityId: subscription.id,
+        action: currentSubscription
+          ? ActivityAction.UPDATE
+          : ActivityAction.CREATE,
+        metadata: {
+          paymentId: payment.id,
+          paymentActivation: true,
+          plan: subscription.plan,
+          currentPeriodStart: currentPeriodStart.toISOString(),
+          currentPeriodEnd: currentPeriodEnd.toISOString(),
+        },
+      },
+      tx,
+    );
+
+    return {
+      result: "processed" as const,
+      subscriptionId: subscription.id,
+      currentPeriodStart: subscription.currentPeriodStart,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+    };
+  });
 };
 
 export const SubscriptionServices = {
@@ -267,4 +377,5 @@ export const SubscriptionServices = {
   createSubscription,
   updateSubscription,
   cancelSubscription,
+  activatePaidSubscriptionForPayment,
 };

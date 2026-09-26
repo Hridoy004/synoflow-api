@@ -10,17 +10,17 @@ router.post(
   "/checkout",
   auth(),
   validateRequest(PaymentValidation.checkoutSchema),
-  PaymentController.checkout,
+  PaymentController.createCheckout,
 );
 
 router.get("/", auth(), PaymentController.getPayments);
-
-router.get("/:paymentId", auth(), PaymentController.getPayment);
 
 router.post(
   "/webhook",
   validateRequest(PaymentValidation.webhookSchema),
   PaymentController.webhook,
 );
+
+router.get("/:paymentId", auth(), PaymentController.getPayment);
 
 export const PaymentRoutes = router;

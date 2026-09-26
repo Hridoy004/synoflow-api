@@ -1,16 +1,17 @@
 import type {
   PaymentProvider,
   PaymentStatus,
-  SubscriptionPlan,
 } from "../../../generated/prisma/enums";
 
 export interface ICheckoutPayload {
-  organizationId: string;
-  plan: SubscriptionPlan;
+  subscriptionId: string;
 }
 
 export interface IWebhookPayload {
-  transactionId: string;
+  paymentId?: string;
+  subscriptionId?: string;
+  organizationId?: string;
+  providerTransactionId?: string;
   status: PaymentStatus;
   paymentUrl?: string | null;
 }
@@ -18,6 +19,7 @@ export interface IWebhookPayload {
 export interface IPaymentSummary {
   id: string;
   organizationId: string;
+  subscriptionId?: string | null;
   userId: string;
   provider: PaymentProvider;
   transactionId: string;

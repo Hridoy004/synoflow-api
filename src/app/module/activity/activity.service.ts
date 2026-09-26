@@ -159,14 +159,17 @@ export type CreateActivityInput = {
   metadata?: Record<string, unknown> | null;
 };
 
-export const createActivity = async ({
-  organizationId,
-  userId,
-  entityType,
-  entityId,
-  action,
-  metadata,
-}: CreateActivityInput) => {
+export const createActivity = async (
+  {
+    organizationId,
+    userId,
+    entityType,
+    entityId,
+    action,
+    metadata,
+  }: CreateActivityInput,
+  tx?: Prisma.TransactionClient,
+) => {
   if (!organizationId || !userId || !entityId) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -174,7 +177,9 @@ export const createActivity = async ({
     );
   }
 
-  return prisma.activity.create({
+  const client = tx ?? prisma;
+
+  return client.activity.create({
     data: {
       organizationId,
       userId,

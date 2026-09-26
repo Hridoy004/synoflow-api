@@ -1,23 +1,21 @@
 import z from "zod";
-import {
-  PaymentStatus,
-  SubscriptionPlan,
-} from "../../../generated/prisma/enums";
+import { PaymentStatus } from "../../../generated/prisma/enums";
 
 const checkoutSchema = z
   .object({
-    organizationId: z.string().min(1),
-    plan: z.enum([
-      SubscriptionPlan.FREE,
-      SubscriptionPlan.PRO,
-      SubscriptionPlan.BUSINESS,
-    ]),
+    subscriptionId: z
+      .string()
+      .trim()
+      .uuid("Subscription ID must be a valid UUID."),
   })
   .strict();
 
 const webhookSchema = z
   .object({
-    transactionId: z.string().min(1),
+    paymentId: z.string().trim().min(1).optional(),
+    subscriptionId: z.string().trim().min(1).optional(),
+    organizationId: z.string().trim().min(1).optional(),
+    providerTransactionId: z.string().trim().min(1).optional(),
     status: z.nativeEnum(PaymentStatus),
     paymentUrl: z.string().url().optional().or(z.literal("")),
   })

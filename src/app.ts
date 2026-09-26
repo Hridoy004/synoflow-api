@@ -77,23 +77,6 @@ app.use("/api/v1/attachments", AttachmentRoutes);
 app.use("/api/v1/labels", LabelRoutes);
 app.use("/api/v1/sprints", SprintRoutes);
 
-// app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
-// 	try {
-// 		const grantIdTokenResult = await getBkashIdToken();
-
-// 		console.log(grantIdTokenResult);
-
-// 		res.status(httpStatus.OK).json({
-// 			success: true,
-// 			message: "Welcome to PH Healthcare System Backend",
-// 			data: null,
-// 		});
-// 	} catch (error) {
-// 		console.log(error);
-// 		next(error);
-// 	}
-// });
-
 app.get("/", async (req: Request, res: Response) => {
   res.status(httpStatus.OK).json({
     success: true,

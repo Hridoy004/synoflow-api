@@ -1,28 +1,35 @@
 model Payment {
-  id             String @id @default(uuid())
+  id             String  @id @default(uuid())
   organizationId String
+  subscriptionId String?
   userId         String
 
-  provider PaymentProvider
+  provider              PaymentProvider
+  transactionId         String          @unique
+  providerSessionId     String?
+  providerTransactionId String?
 
-  transactionId String @unique
-
-  amount   Decimal @db.Decimal(12, 2)
-  currency String  @default("USD")
-
-  status PaymentStatus @default(PENDING)
+  amount   Decimal       @db.Decimal(12, 2)
+  currency String        @default("BDT")
+  status   PaymentStatus @default(PENDING)
 
   paymentUrl String?
+  paidAt     DateTime?
   metadata   Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  processedAt DateTime?
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id])
-
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  user         User          @relation(fields: [userId], references: [id])
+  
   @@index([organizationId])
+  @@index([subscriptionId])
   @@index([userId])
   @@index([status])
+  @@index([provider])
+  @@index([providerTransactionId])
   @@index([createdAt])
 }

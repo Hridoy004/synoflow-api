@@ -16,20 +16,21 @@ const getUserId = (req: Request) => {
   return req.user.userId;
 };
 
-const checkout = catchAsync(async (req, res) => {
-  const data = await PaymentServices.checkout(
-    req.body.organizationId,
+const createCheckout = catchAsync(async (req, res) => {
+  const data = await PaymentServices.createCheckout(
     getUserId(req),
-    req.body.plan,
+    req.body.subscriptionId,
   );
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Checkout created successfully.",
+    message: "Payment checkout created successfully.",
     data,
   });
 });
+
+const checkout = createCheckout;
 
 const getPayments = catchAsync(async (req, res) => {
   const organizationId = req.query.organizationId as string | undefined;
@@ -78,6 +79,7 @@ const webhook = catchAsync(async (req, res) => {
 });
 
 export const PaymentController = {
+  createCheckout,
   checkout,
   getPayments,
   getPayment,
