@@ -5,7 +5,6 @@ import { validateRequest } from "../../middleware/validateRequest";
 import { PaymentController } from "./payment.controller";
 import { PaymentValidation } from "./payment.validation";
 
-
 const organizationPaymentRouter = Router({ mergeParams: true });
 
 organizationPaymentRouter.post(
