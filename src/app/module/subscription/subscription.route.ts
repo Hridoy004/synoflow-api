@@ -8,22 +8,22 @@ const router = Router({ mergeParams: true });
 
 router.get("/", auth(), SubscriptionController.getSubscription);
 router.post(
-  "/",
-  auth(),
-  validateRequest(SubscriptionValidation.createSubscriptionSchema),
-  SubscriptionController.createSubscription,
+	"/",
+	auth(),
+	validateRequest(SubscriptionValidation.createSubscriptionSchema),
+	SubscriptionController.createSubscription,
 );
 router.patch(
-  "/",
-  auth(),
-  validateRequest(SubscriptionValidation.updateSubscriptionSchema),
-  SubscriptionController.updateSubscription,
+	"/",
+	auth(),
+	validateRequest(SubscriptionValidation.updateSubscriptionSchema),
+	SubscriptionController.updateSubscription,
 );
 router.post(
-  "/cancel",
-  auth(),
-  validateRequest(SubscriptionValidation.cancelSubscriptionSchema),
-  SubscriptionController.cancelSubscription,
+	"/cancel",
+	auth(),
+	validateRequest(SubscriptionValidation.cancelSubscriptionSchema),
+	SubscriptionController.cancelSubscription,
 );
 
 export const SubscriptionRoutes = router;

@@ -1,87 +1,121 @@
-import type { Request } from "express";
+import type { Request, Response } from "express";
 import httpStatus from "http-status";
+import config from "../../config";
 import { AppError } from "../../utils/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import { handleBkashCallback } from "./payment-webhook.service";
 import { PaymentServices } from "./payment.service";
 
-const getUserId = (req: Request) => {
-  if (!req.user?.userId) {
-    throw new AppError(
-      httpStatus.UNAUTHORIZED,
-      "User information is missing in the request.",
-    );
-  }
+const getOrganizationId = (req: Request) => {
+	const { organizationId } = req.params;
 
-  return req.user.userId;
+	if (typeof organizationId !== "string" || organizationId.length === 0) {
+		throw new AppError(httpStatus.BAD_REQUEST, "Invalid organization ID.");
+	}
+
+	return organizationId;
 };
 
-const createCheckout = catchAsync(async (req, res) => {
-  const data = await PaymentServices.createCheckout(
-    getUserId(req),
-    req.body.subscriptionId,
-  );
+const createCheckout = catchAsync(async (req: Request, res: Response) => {
+	const organizationId = getOrganizationId(req);
+	const user = req.user!;
 
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Payment checkout created successfully.",
-    data,
-  });
+	const payment = await PaymentServices.createCheckoutPayment(
+		organizationId,
+		user.userId,
+		req.body.plan,
+	);
+
+	sendResponse(res, {
+		statusCode: httpStatus.CREATED,
+		success: true,
+		message: "Checkout session created successfully",
+		data: { paymentId: payment.id, paymentUrl: payment.paymentUrl },
+	});
 });
 
-const checkout = createCheckout;
+const getOrganizationPayments = catchAsync(
+	async (req: Request, res: Response) => {
+		const organizationId = getOrganizationId(req);
+		const user = req.user!;
 
-const getPayments = catchAsync(async (req, res) => {
-  const organizationId = req.query.organizationId as string | undefined;
+		const { data, meta } = await PaymentServices.getOrganizationPayments(
+			organizationId,
+			user.userId,
+			req.query,
+		);
 
-  if (!organizationId) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Organization ID is required.");
-  }
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "Payments retrieved successfully",
+			data,
+			meta,
+		});
+	},
+);
 
-  const data = await PaymentServices.getPayments(
-    organizationId,
-    getUserId(req),
-  );
+const getAllPayments = catchAsync(async (req: Request, res: Response) => {
+	const { data, meta } = await PaymentServices.getAllPayments(req.query);
 
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Payments retrieved successfully.",
-    data,
-  });
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Payments retrieved successfully",
+		data,
+		meta,
+	});
 });
 
-const getPayment = catchAsync(async (req, res) => {
-  const paymentId = Array.isArray(req.params.paymentId)
-    ? req.params.paymentId[0]
-    : req.params.paymentId;
+const getSinglePayment = catchAsync(async (req: Request, res: Response) => {
+	const paymentId = req.params.paymentId as string;
+	const user = req.user!;
 
-  const data = await PaymentServices.getPayment(paymentId, getUserId(req));
+	const result = await PaymentServices.getSinglePayment(paymentId, user);
 
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Payment retrieved successfully.",
-    data,
-  });
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Payment retrieved successfully",
+		data: result,
+	});
 });
 
-const webhook = catchAsync(async (req, res) => {
-  const data = await PaymentServices.processWebhook(req.body);
+/**
+ * bKash redirects the user's BROWSER here (GET) after checkout — this is
+ * not a JSON API consumer, so it responds with a redirect to the frontend
+ * instead of sendResponse.
+ */
+const bkashCallback = catchAsync(async (req: Request, res: Response) => {
+	const paymentID = req.query.paymentID as string | undefined;
+	const status = req.query.status as
+		| "success"
+		| "failure"
+		| "cancel"
+		| undefined;
 
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Payment webhook processed successfully.",
-    data,
-  });
+	if (!paymentID || !status) {
+		return res.redirect(`${config.frontend_url}/billing/failed`);
+	}
+
+	const result = await handleBkashCallback(paymentID, status);
+
+	if (result.result === "success") {
+		return res.redirect(
+			`${config.frontend_url}/billing/success?paymentId=${result.paymentId}`,
+		);
+	}
+
+	return res.redirect(
+		`${config.frontend_url}/billing/failed?paymentId=${result.paymentId}`,
+	);
 });
 
 export const PaymentController = {
-  createCheckout,
-  checkout,
-  getPayments,
-  getPayment,
-  webhook,
+	createCheckout,
+	getOrganizationPayments,
+	getAllPayments,
+	getSinglePayment,
+	bkashCallback,
 };

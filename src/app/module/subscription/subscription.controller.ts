@@ -6,87 +6,87 @@ import { sendResponse } from "../../utils/sendResponse";
 import { SubscriptionServices } from "./subscription.service";
 
 const getUserId = (req: Request) => {
-  if (!req.user?.userId) {
-    throw new AppError(
-      httpStatus.UNAUTHORIZED,
-      "User information is missing in the request.",
-    );
-  }
+	if (!req.user?.userId) {
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"User information is missing in the request.",
+		);
+	}
 
-  return req.user.userId;
+	return req.user.userId;
 };
 
 const getOrganizationId = (req: Request) => {
-  const { organizationId } = req.params;
+	const { organizationId } = req.params;
 
-  if (typeof organizationId !== "string") {
-    throw new AppError(httpStatus.BAD_REQUEST, "Invalid organization ID.");
-  }
+	if (typeof organizationId !== "string") {
+		throw new AppError(httpStatus.BAD_REQUEST, "Invalid organization ID.");
+	}
 
-  return organizationId;
+	return organizationId;
 };
 
 const getSubscription = catchAsync(async (req, res) => {
-  const data = await SubscriptionServices.getSubscription(
-    getOrganizationId(req),
-    getUserId(req),
-  );
+	const data = await SubscriptionServices.getSubscription(
+		getOrganizationId(req),
+		getUserId(req),
+	);
 
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Subscription retrieved successfully",
-    data,
-  });
+	return sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Subscription retrieved successfully",
+		data,
+	});
 });
 
 const createSubscription = catchAsync(async (req, res) => {
-  const data = await SubscriptionServices.createSubscription(
-    getOrganizationId(req),
-    getUserId(req),
-    req.body,
-  );
+	const data = await SubscriptionServices.createSubscription(
+		getOrganizationId(req),
+		getUserId(req),
+		req.body,
+	);
 
-  return sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: "Subscription created successfully",
-    data,
-  });
+	return sendResponse(res, {
+		statusCode: httpStatus.CREATED,
+		success: true,
+		message: "Subscription created successfully",
+		data,
+	});
 });
 
 const updateSubscription = catchAsync(async (req, res) => {
-  const data = await SubscriptionServices.updateSubscription(
-    getOrganizationId(req),
-    getUserId(req),
-    req.body,
-  );
+	const data = await SubscriptionServices.updateSubscription(
+		getOrganizationId(req),
+		getUserId(req),
+		req.body,
+	);
 
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Subscription updated successfully",
-    data,
-  });
+	return sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Subscription updated successfully",
+		data,
+	});
 });
 
 const cancelSubscription = catchAsync(async (req, res) => {
-  const data = await SubscriptionServices.cancelSubscription(
-    getOrganizationId(req),
-    getUserId(req),
-  );
+	const data = await SubscriptionServices.cancelSubscription(
+		getOrganizationId(req),
+		getUserId(req),
+	);
 
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Subscription cancellation scheduled successfully",
-    data,
-  });
+	return sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Subscription cancellation scheduled successfully",
+		data,
+	});
 });
 
 export const SubscriptionController = {
-  getSubscription,
-  createSubscription,
-  updateSubscription,
-  cancelSubscription,
+	getSubscription,
+	createSubscription,
+	updateSubscription,
+	cancelSubscription,
 };

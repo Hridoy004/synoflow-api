@@ -1,12 +1,12 @@
 export interface ICreateCommentPayload {
-  content: string;
+	content: string;
 }
 
 export interface IUpdateCommentPayload {
-  content?: string;
+	content?: string;
 }
 
 export interface ICommentQuery {
-  page?: number | string;
-  limit?: number | string;
+	page?: number | string;
+	limit?: number | string;
 }

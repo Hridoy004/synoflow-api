@@ -1,4 +1,4 @@
 export interface IAttachmentQuery {
-  page?: number | string;
-  limit?: number | string;
+	page?: number | string;
+	limit?: number | string;
 }

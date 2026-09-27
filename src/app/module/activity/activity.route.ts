@@ -6,18 +6,18 @@ import { ActivityValidation } from "./activity.validation";
 
 const organizationActivityRouter = Router({ mergeParams: true });
 organizationActivityRouter.get(
-  "/",
-  auth(),
-  validateRequest(ActivityValidation.activityQuerySchema, "query"),
-  ActivityController.getOrganizationActivities,
+	"/",
+	auth(),
+	validateRequest(ActivityValidation.activityQuerySchema, "query"),
+	ActivityController.getOrganizationActivities,
 );
 
 const taskActivityRouter = Router({ mergeParams: true });
 taskActivityRouter.get(
-  "/",
-  auth(),
-  validateRequest(ActivityValidation.activityQuerySchema, "query"),
-  ActivityController.getTaskActivities,
+	"/",
+	auth(),
+	validateRequest(ActivityValidation.activityQuerySchema, "query"),
+	ActivityController.getTaskActivities,
 );
 
 export const OrganizationActivityRoutes = organizationActivityRouter;

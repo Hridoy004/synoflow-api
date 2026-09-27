@@ -11,10 +11,10 @@ import { OrganizationValidation } from "./organization.validation";
 const router = Router();
 
 router.post(
-  "/",
-  auth(),
-  validateRequest(OrganizationValidation.createOrganizationSchema),
-  OrganizationController.createOrganization,
+	"/",
+	auth(),
+	validateRequest(OrganizationValidation.createOrganizationSchema),
+	OrganizationController.createOrganization,
 );
 
 router.get("/", auth(), OrganizationController.getMyOrganizations);
@@ -27,16 +27,16 @@ router.use("/:organizationId/labels", OrganizationLabelRoutes);
 router.get("/:organizationId", auth(), OrganizationController.getOrganization);
 
 router.patch(
-  "/:organizationId",
-  auth(),
-  validateRequest(OrganizationValidation.updateOrganizationSchema),
-  OrganizationController.updateOrganization,
+	"/:organizationId",
+	auth(),
+	validateRequest(OrganizationValidation.updateOrganizationSchema),
+	OrganizationController.updateOrganization,
 );
 
 router.delete(
-  "/:organizationId",
-  auth(),
-  OrganizationController.deleteOrganization,
+	"/:organizationId",
+	auth(),
+	OrganizationController.deleteOrganization,
 );
 
 export const OrganizationRoutes = router;

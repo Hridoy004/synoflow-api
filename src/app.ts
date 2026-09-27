@@ -24,7 +24,10 @@ import {
 } from "./app/module/comment/comment.route";
 import { LabelRoutes, TaskLabelRoutes } from "./app/module/label/label.route";
 import { OrganizationRoutes } from "./app/module/organization/organization.route";
-import { PaymentRoutes } from "./app/module/payment/payment.route";
+import {
+  OrganizationPaymentRoutes,
+  PaymentRoutes,
+} from "./app/module/payment/payment.route";
 import { ProjectRoutes } from "./app/module/project/project.route";
 import {
   ProjectSprintRoutes,
@@ -53,12 +56,26 @@ app.use(cookieParser());
 
 app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/user", UserRoutes);
+
+// Top-level payment endpoints: bKash's public callback, the admin-only
+// all-payments listing, and single-payment lookup by id.
 app.use("/api/v1/payments", PaymentRoutes);
+
 app.use("/api/v1/organizations", OrganizationRoutes);
+
 app.use(
   "/api/v1/organizations/:organizationId/subscription",
   SubscriptionRoutes,
 );
+
+// Organization-scoped payment endpoints: checkout + this org's payment
+// history. Mirrors the subscription mount above — same :organizationId
+// param, same mergeParams pattern.
+app.use(
+  "/api/v1/organizations/:organizationId/payments",
+  OrganizationPaymentRoutes,
+);
+
 app.use(
   "/api/v1/organizations/:organizationId/activities",
   OrganizationActivityRoutes,
