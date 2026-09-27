@@ -8,7 +8,7 @@
   "main": "server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsup",
     "start": "node dist/server.js",
     "test": "tsx --test",
     "format:check": "npx @biomejs/biome format ./src",
@@ -28,6 +28,7 @@
     "@types/pdfkit": "^0.17.6",
     "@types/pg": "^8.23.1",
     "prisma": "^7.10.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   },
