@@ -1,0 +1,18 @@
+model ContactSubmission {
+  id           String        @id @default(uuid())
+  name         String        @db.VarChar(100)
+  email        String        @db.VarChar(254)
+  inquiryType  String        @db.VarChar(30)
+  organization String?       @db.VarChar(120)
+  subject      String        @db.VarChar(150)
+  message      String        @db.VarChar(2000)
+  status       ContactStatus @default(NEW)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+  @@index([inquiryType])
+
+  @@map("contacts")
+}

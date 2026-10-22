@@ -23,6 +23,7 @@ import {
 	CommentRoutes,
 	TaskCommentRoutes,
 } from "./app/module/comment/comment.route";
+import { ContactRoutes } from "./app/module/contact/contact.route";
 import { LabelRoutes, TaskLabelRoutes } from "./app/module/label/label.route";
 import { OrganizationRoutes } from "./app/module/organization/organization.route";
 import {
@@ -81,6 +82,7 @@ app.use("/api/v1/tasks/:taskId/activities", TaskActivityRoutes);
 app.use("/api/v1/tasks/:taskId/comments", TaskCommentRoutes);
 app.use("/api/v1/tasks/:taskId/attachments", TaskAttachmentRoutes);
 app.use("/api/v1/comments", CommentRoutes);
+app.use("/api/v1/contact", ContactRoutes);
 app.use("/api/v1/attachments", AttachmentRoutes);
 app.use("/api/v1/labels", LabelRoutes);
 app.use("/api/v1/sprints", SprintRoutes);

@@ -14,4 +14,6 @@ model Comment {
 
   @@index([taskId])
   @@index([userId])
+
+  @@map("comments")
 }

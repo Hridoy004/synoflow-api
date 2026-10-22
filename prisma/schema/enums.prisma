@@ -105,3 +105,10 @@ enum AuthProvider {
   GOOGLE
   CREDENTIAL
 }
+
+enum ContactStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  SPAM
+}
