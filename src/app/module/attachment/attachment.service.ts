@@ -186,9 +186,8 @@ const uploadAttachment = async (
 			.end(file.buffer);
 	});
 
-	let createdAttachment;
-	try {
-		createdAttachment = await prisma.attachment.create({
+	const createdAttachment = await prisma.attachment
+		.create({
 			data: {
 				taskId,
 				userId,
@@ -213,13 +212,13 @@ const uploadAttachment = async (
 					},
 				},
 			},
+		})
+		.catch(async (error: unknown) => {
+			await cloudinary.uploader
+				.destroy(uploadResult.public_id)
+				.catch(() => undefined);
+			throw error;
 		});
-	} catch (error) {
-		await cloudinary.uploader
-			.destroy(uploadResult.public_id)
-			.catch(() => undefined);
-		throw error;
-	}
 
 	await createActivity({
 		organizationId,
