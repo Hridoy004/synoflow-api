@@ -10,8 +10,8 @@ import { AppError } from "../../utils/AppError";
 import { generateInvoicePdf } from "../../utils/generateInvoicePdf";
 import { sendMail } from "../../utils/sendMail";
 import { createActivity } from "../activity/activity.service";
-import { SubscriptionRenewalService } from "../subscription/subscription-renewal.service";
 import { SubscriptionServices } from "../subscription/subscription.service";
+import { SubscriptionRenewalService } from "../subscription/subscription-renewal.service";
 
 type BkashCallbackStatus = "success" | "failure" | "cancel";
 
@@ -43,7 +43,13 @@ export const handleBkashCallback = async (
 	}
 
 	if (payment.status !== PaymentStatus.PENDING) {
-		return { result: "already_processed" as const, paymentId: payment.id };
+		return {
+			result:
+				payment.status === PaymentStatus.SUCCESS
+					? ("success" as const)
+					: ("failed" as const),
+			paymentId: payment.id,
+		};
 	}
 
 	if (status !== "success") {
@@ -58,7 +64,17 @@ export const handleBkashCallback = async (
 			payment.id,
 			execution.statusMessage ?? "execute_failed",
 		);
-		return { result: "failed" as const, paymentId: payment.id };
+		const latestPayment = await prisma.payment.findUnique({
+			where: { id: payment.id },
+			select: { status: true },
+		});
+		return {
+			result:
+				latestPayment?.status === PaymentStatus.SUCCESS
+					? ("success" as const)
+					: ("failed" as const),
+			paymentId: payment.id,
+		};
 	}
 
 	// Claim the row before doing anything else, so two concurrent callback
@@ -73,7 +89,17 @@ export const handleBkashCallback = async (
 	});
 
 	if (claim.count === 0) {
-		return { result: "already_processed" as const, paymentId: payment.id };
+		const latestPayment = await prisma.payment.findUnique({
+			where: { id: payment.id },
+			select: { status: true },
+		});
+		return {
+			result:
+				latestPayment?.status === PaymentStatus.SUCCESS
+					? ("success" as const)
+					: ("failed" as const),
+			paymentId: payment.id,
+		};
 	}
 
 	const metadata = payment.metadata as Record<string, unknown> | null;

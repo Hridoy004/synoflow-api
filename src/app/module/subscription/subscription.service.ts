@@ -101,11 +101,19 @@ const getSubscriptionRecord = async (organizationId: string) => {
 const getSubscription = async (
 	organizationId: string,
 	userId: string,
-): Promise<ISubscriptionSummary> => {
+): Promise<ISubscriptionSummary | null> => {
 	await getActiveOrganization(organizationId);
 	await getOrganizationMembership(organizationId, userId);
 
-	const subscription = await getSubscriptionRecord(organizationId);
+	const subscription = await prisma.subscription.findUnique({
+		where: { organizationId },
+		select: subscriptionSelect,
+	});
+
+	if (!subscription) {
+		return null;
+	}
+
 	return serializeSubscription(subscription);
 };
 

@@ -1,5 +1,5 @@
-import httpStatus from "http-status";
 import { randomUUID } from "node:crypto";
+import httpStatus from "http-status";
 import {
 	OrganizationRole,
 	PaymentProvider,
@@ -54,7 +54,7 @@ const getOrganizationPayments = async (
 	userId: string,
 	query: IQuery,
 ) => {
-	await assertMembership(organizationId, userId);
+	await assertOwner(organizationId, userId);
 
 	const limit = query.limit ? Number(query.limit) : 10;
 	const page = query.page ? Number(query.page) : 1;
@@ -116,7 +116,7 @@ const getSinglePayment = async (paymentId: string, user: RequestUser) => {
 		throw new AppError(httpStatus.NOT_FOUND, "Payment not found.");
 	}
 
-	await assertMembership(payment.organizationId, user.userId);
+	await assertOwner(payment.organizationId, user.userId);
 
 	return payment;
 };
