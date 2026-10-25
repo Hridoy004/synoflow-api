@@ -10,7 +10,29 @@ const router = Router();
 router.get(
 	"/users",
 	auth(SystemRole.ADMIN, SystemRole.SUPER_ADMIN),
+	validateRequest(AdminValidation.userQuerySchema, "query"),
 	AdminController.getUsers,
+);
+
+router.get(
+	"/organizations",
+	auth(SystemRole.SUPER_ADMIN),
+	validateRequest(AdminValidation.organizationQuerySchema, "query"),
+	AdminController.getOrganizations,
+);
+
+router.get(
+	"/projects",
+	auth(SystemRole.SUPER_ADMIN),
+	validateRequest(AdminValidation.projectQuerySchema, "query"),
+	AdminController.getProjects,
+);
+
+router.get(
+	"/subscriptions",
+	auth(SystemRole.SUPER_ADMIN),
+	validateRequest(AdminValidation.subscriptionQuerySchema, "query"),
+	AdminController.getSubscriptions,
 );
 
 router.patch(
@@ -29,6 +51,7 @@ router.get(
 router.get(
 	"/audit-logs",
 	auth(SystemRole.ADMIN, SystemRole.SUPER_ADMIN),
+	validateRequest(AdminValidation.auditLogQuerySchema, "query"),
 	AdminController.getAuditLogs,
 );
 

@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import httpStatus from "http-status";
+import { AppError } from "../../utils/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { AdminServices } from "./admin.service";
@@ -16,9 +17,52 @@ const getUsers = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const getOrganizations = catchAsync(async (req: Request, res: Response) => {
+	const { data, meta } = await AdminServices.getOrganizations(req.query);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Organizations retrieved successfully",
+		data,
+		meta,
+	});
+});
+
+const getProjects = catchAsync(async (req: Request, res: Response) => {
+	const { data, meta } = await AdminServices.getProjects(req.query);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Projects retrieved successfully",
+		data,
+		meta,
+	});
+});
+
+const getSubscriptions = catchAsync(async (req: Request, res: Response) => {
+	const { data, meta } = await AdminServices.getSubscriptions(req.query);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Subscriptions retrieved successfully",
+		data,
+		meta,
+	});
+});
+
 const updateUserRole = catchAsync(async (req: Request, res: Response) => {
-	const actor = req.user!;
-	const targetUserId = req.params.id as string;
+	const actor = req.user;
+	if (!actor) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Authentication required.");
+	}
+
+	const targetUserId = req.params.id;
+	if (typeof targetUserId !== "string") {
+		throw new AppError(httpStatus.BAD_REQUEST, "Invalid user ID.");
+	}
 
 	const data = await AdminServices.updateUserRole(
 		actor.userId,
@@ -59,6 +103,9 @@ const getAuditLogs = catchAsync(async (req: Request, res: Response) => {
 
 export const AdminController = {
 	getUsers,
+	getOrganizations,
+	getProjects,
+	getSubscriptions,
 	updateUserRole,
 	getDashboardStats,
 	getAuditLogs,

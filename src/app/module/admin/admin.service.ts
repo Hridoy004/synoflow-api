@@ -1,6 +1,8 @@
 import httpStatus from "http-status";
 import type { Prisma } from "../../../generated/prisma/client";
 import {
+	OrganizationRole,
+	OrganizationStatus,
 	PaymentStatus,
 	SubscriptionStatus,
 	SystemRole,
@@ -9,6 +11,9 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import type {
 	IAdminAuditLogQuery,
+	IAdminOrganizationQuery,
+	IAdminProjectQuery,
+	IAdminSubscriptionQuery,
 	IAdminUserQuery,
 	IUpdateUserRolePayload,
 } from "./admin.interface";
@@ -59,6 +64,163 @@ const getUsers = async (query: IAdminUserQuery) => {
 			select: safeUserSelect,
 		}),
 		prisma.user.count({ where }),
+	]);
+
+	return {
+		data,
+		meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+	};
+};
+
+const getOrganizations = async (query: IAdminOrganizationQuery) => {
+	const page = parsePositiveInt(query.page, 1);
+	const limit = Math.min(parsePositiveInt(query.limit, 20), 100);
+	const search = query.search?.trim();
+	const where: Prisma.OrganizationWhereInput = {
+		deletedAt: null,
+		...(query.status ? { status: query.status } : {}),
+		...(search
+			? {
+					OR: [
+						{ name: { contains: search, mode: "insensitive" } },
+						{ slug: { contains: search, mode: "insensitive" } },
+					],
+				}
+			: {}),
+	};
+
+	const [data, total] = await Promise.all([
+		prisma.organization.findMany({
+			where,
+			skip: (page - 1) * limit,
+			take: limit,
+			orderBy: { createdAt: "desc" },
+			select: {
+				id: true,
+				name: true,
+				slug: true,
+				status: true,
+				createdAt: true,
+				updatedAt: true,
+				members: {
+					where: { role: OrganizationRole.OWNER },
+					take: 1,
+					select: {
+						user: { select: { id: true, name: true, email: true } },
+					},
+				},
+				_count: { select: { members: true, projects: true } },
+			},
+		}),
+		prisma.organization.count({ where }),
+	]);
+
+	return {
+		data: data.map(({ members, _count, ...organization }) => ({
+			...organization,
+			owner: members[0]?.user ?? null,
+			memberCount: _count.members,
+			projectCount: _count.projects,
+		})),
+		meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+	};
+};
+
+const getProjects = async (query: IAdminProjectQuery) => {
+	const page = parsePositiveInt(query.page, 1);
+	const limit = Math.min(parsePositiveInt(query.limit, 20), 100);
+	const search = query.search?.trim();
+	const where: Prisma.ProjectWhereInput = {
+		deletedAt: null,
+		organization: { deletedAt: null, status: OrganizationStatus.ACTIVE },
+		...(query.status ? { status: query.status } : {}),
+		...(search
+			? {
+					OR: [
+						{ name: { contains: search, mode: "insensitive" } },
+						{ key: { contains: search, mode: "insensitive" } },
+						{
+							organization: {
+								name: { contains: search, mode: "insensitive" },
+							},
+						},
+					],
+				}
+			: {}),
+	};
+
+	const [data, total] = await Promise.all([
+		prisma.project.findMany({
+			where,
+			skip: (page - 1) * limit,
+			take: limit,
+			orderBy: { createdAt: "desc" },
+			select: {
+				id: true,
+				name: true,
+				key: true,
+				status: true,
+				startDate: true,
+				dueDate: true,
+				createdAt: true,
+				organization: { select: { id: true, name: true, slug: true } },
+				createdBy: { select: { id: true, name: true, email: true } },
+				_count: { select: { tasks: true, members: true } },
+			},
+		}),
+		prisma.project.count({ where }),
+	]);
+
+	return {
+		data: data.map(({ _count, ...project }) => ({
+			...project,
+			taskCount: _count.tasks,
+			memberCount: _count.members,
+		})),
+		meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+	};
+};
+
+const getSubscriptions = async (query: IAdminSubscriptionQuery) => {
+	const page = parsePositiveInt(query.page, 1);
+	const limit = Math.min(parsePositiveInt(query.limit, 20), 100);
+	const search = query.search?.trim();
+	const where: Prisma.SubscriptionWhereInput = {
+		organization: { deletedAt: null },
+		...(query.status ? { status: query.status } : {}),
+		...(query.plan ? { plan: query.plan } : {}),
+		...(search
+			? {
+					organization: {
+						deletedAt: null,
+						OR: [
+							{ name: { contains: search, mode: "insensitive" } },
+							{ slug: { contains: search, mode: "insensitive" } },
+						],
+					},
+				}
+			: {}),
+	};
+
+	const [data, total] = await Promise.all([
+		prisma.subscription.findMany({
+			where,
+			skip: (page - 1) * limit,
+			take: limit,
+			orderBy: { updatedAt: "desc" },
+			select: {
+				id: true,
+				plan: true,
+				status: true,
+				currentPeriodStart: true,
+				currentPeriodEnd: true,
+				cancelAtPeriodEnd: true,
+				createdAt: true,
+				updatedAt: true,
+				organization: { select: { id: true, name: true, slug: true } },
+			},
+		}),
+		prisma.subscription.count({ where }),
 	]);
 
 	return {
@@ -178,6 +340,11 @@ const getAuditLogs = async (query: IAdminAuditLogQuery) => {
 	const page = parsePositiveInt(query.page, 1);
 	const limit = Math.min(parsePositiveInt(query.limit, 20), 100);
 
+	const to = query.to
+		? /^\d{4}-\d{2}-\d{2}$/.test(query.to)
+			? new Date(`${query.to}T23:59:59.999Z`)
+			: new Date(query.to)
+		: undefined;
 	const where: Prisma.ActivityWhereInput = {
 		...(query.organizationId ? { organizationId: query.organizationId } : {}),
 		...(query.userId ? { userId: query.userId } : {}),
@@ -187,7 +354,7 @@ const getAuditLogs = async (query: IAdminAuditLogQuery) => {
 			? {
 					createdAt: {
 						...(query.from ? { gte: new Date(query.from) } : {}),
-						...(query.to ? { lte: new Date(query.to) } : {}),
+						...(to ? { lte: to } : {}),
 					},
 				}
 			: {}),
@@ -215,6 +382,9 @@ const getAuditLogs = async (query: IAdminAuditLogQuery) => {
 
 export const AdminServices = {
 	getUsers,
+	getOrganizations,
+	getProjects,
+	getSubscriptions,
 	updateUserRole,
 	getDashboardStats,
 	getAuditLogs,
