@@ -1,6 +1,5 @@
 import z from "zod";
 
-const uuid = z.uuid("Invalid ID.");
 const date = z.coerce.date();
 const sprintQuerySchema = z.object({
 	page: z.coerce.number().int().positive().default(1),

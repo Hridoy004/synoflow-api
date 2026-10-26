@@ -38,7 +38,7 @@ export const SubscriptionRenewalService = {
 		},
 		now: Date = new Date(),
 	) {
-		if (!subscription || !subscription.currentPeriodEnd) return false;
+		if (!subscription?.currentPeriodEnd) return false;
 		if (subscription.plan === SubscriptionPlan.FREE) return false;
 		if (subscription.status !== SubscriptionStatus.ACTIVE) return false;
 		if (subscription.cancelAtPeriodEnd) return false;

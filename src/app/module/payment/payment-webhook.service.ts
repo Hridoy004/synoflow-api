@@ -141,7 +141,7 @@ const sendInvoiceEmail = async (paymentId: string) => {
 		},
 	});
 
-	if (!payment || !payment.user?.email) return;
+	if (!payment?.user?.email) return;
 
 	const metadata = payment.metadata as Record<string, unknown> | null;
 	const plan = metadata?.plan as InvoicePlan;

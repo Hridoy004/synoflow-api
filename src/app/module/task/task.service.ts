@@ -188,26 +188,6 @@ const buildTaskListWhere = (
 		: {}),
 });
 
-const getOrganizationMembership = async (
-	organizationId: string,
-	userId: string,
-) => {
-	const membership = await prisma.organizationMember.findFirst({
-		where: {
-			organizationId,
-			userId,
-			organization: { status: OrganizationStatus.ACTIVE, deletedAt: null },
-		},
-		select: { role: true },
-	});
-	if (!membership)
-		throw new AppError(
-			httpStatus.FORBIDDEN,
-			"You are not a member of this organization.",
-		);
-	return membership;
-};
-
 const getProjectRecord = async (projectId: string) => {
 	const project = await prisma.project.findFirst({
 		where: {

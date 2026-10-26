@@ -233,7 +233,7 @@ const addTeamMember = async (
 		select: { user: { select: safeUserSelect } },
 	});
 
-	if (!targetMembership || !targetMembership.user) {
+	if (!targetMembership?.user) {
 		throw new AppError(
 			httpStatus.NOT_FOUND,
 			"User is not a member of this organization.",

@@ -1,11 +1,11 @@
 /** biome-ignore-all lint/style/useConst: User and token state are reassigned in auth flows. */
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import ejs from "ejs";
 import type { TokenPayload } from "google-auth-library";
 import httpStatus from "http-status";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
-import path from "path";
+import path from "node:path";
 import {
 	AuthProvider,
 	SystemRole,
@@ -286,10 +286,13 @@ const refreshToken = async (token: string) => {
 	);
 
 	if (!verifiedRefreshToken.success || !verifiedRefreshToken.data) {
+		const verificationError = verifiedRefreshToken.success
+			? "Invalid refresh token"
+			: verifiedRefreshToken.error;
 		throw new AppError(
 			httpStatus.UNAUTHORIZED,
 			config.node_env === "development"
-				? verifiedRefreshToken.error
+				? verificationError
 				: "Invalid refresh token",
 		);
 	}

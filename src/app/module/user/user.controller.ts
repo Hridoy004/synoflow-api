@@ -36,10 +36,14 @@ const uploadProfileImage = catchAsync(async (req: Request, res: Response) => {
 
 	const userId = req.user?.userId;
 
-	const result = await UserServices.uploadProfileImage(
-		req.file?.buffer,
-		userId!,
-	);
+	if (!userId) {
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"User information is missing in the request",
+		);
+	}
+
+	const result = await UserServices.uploadProfileImage(req.file.buffer, userId);
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
 		success: true,

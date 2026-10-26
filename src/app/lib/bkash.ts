@@ -95,11 +95,12 @@ export const getBkashIdToken = async () => {
 		bkashIdToken = result.id_token;
 
 		return bkashIdToken;
-	} catch (error: any) {
+	} catch (error: unknown) {
 		if (error instanceof AppError) {
 			throw error;
 		}
-		throw new AppError(httpStatus.BAD_GATEWAY, error.message);
+		const message = error instanceof Error ? error.message : String(error);
+		throw new AppError(httpStatus.BAD_GATEWAY, message);
 	}
 };
 
