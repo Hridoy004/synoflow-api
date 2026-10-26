@@ -1,11 +1,11 @@
 /** biome-ignore-all lint/style/useConst: User and token state are reassigned in auth flows. */
 import bcrypt from "bcryptjs";
-import crypto from "node:crypto";
+import crypto from "crypto";
 import ejs from "ejs";
 import type { TokenPayload } from "google-auth-library";
 import httpStatus from "http-status";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
-import path from "node:path";
+import path from "path";
 import {
 	AuthProvider,
 	SystemRole,

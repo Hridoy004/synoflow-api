@@ -10,8 +10,8 @@ import { AppError } from "../../utils/AppError";
 import { generateInvoicePdf } from "../../utils/generateInvoicePdf";
 import { sendMail } from "../../utils/sendMail";
 import { createActivity } from "../activity/activity.service";
-import { SubscriptionServices } from "../subscription/subscription.service";
 import { SubscriptionRenewalService } from "../subscription/subscription-renewal.service";
+import { SubscriptionServices } from "../subscription/subscription.service";
 
 type BkashCallbackStatus = "success" | "failure" | "cancel";
 
@@ -141,7 +141,7 @@ const sendInvoiceEmail = async (paymentId: string) => {
 		},
 	});
 
-	if (!payment?.user?.email) return;
+	if (!payment || !payment.user?.email) return;
 
 	const metadata = payment.metadata as Record<string, unknown> | null;
 	const plan = metadata?.plan as InvoicePlan;

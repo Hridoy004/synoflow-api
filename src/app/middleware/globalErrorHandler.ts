@@ -5,7 +5,7 @@ import config from "../config";
 import { AppError } from "../utils/AppError";
 
 export const globalErrorHandler = async (
-	err: unknown,
+	err: any,
 	_req: Request,
 	res: Response,
 	_next: NextFunction,
@@ -15,9 +15,8 @@ export const globalErrorHandler = async (
 	}
 
 	let statusCode: number = httpStatus.INTERNAL_SERVER_ERROR;
-	let errorMessage =
-		err instanceof Error ? err.message : "Internal Server Error";
-	const errorName = err instanceof Error ? err.name : "Internal Server Error";
+	let errorMessage = err.message || "Internal Server Error";
+	const errorName = err.name || "Internal Server Error";
 	// let errorDetails = err.stack
 
 	if (err instanceof Prisma.PrismaClientValidationError) {
@@ -64,9 +63,6 @@ export const globalErrorHandler = async (
 				? errorMessage
 				: "Internal Server Error",
 		error: config.node_env === "development" ? err : undefined,
-		stack:
-			config.node_env === "development" && err instanceof Error
-				? err.stack
-				: undefined,
+		stack: config.node_env === "development" ? err.stack : undefined,
 	});
 };

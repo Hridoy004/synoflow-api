@@ -4,7 +4,6 @@ import config from "../../config";
 import { AppError } from "../../utils/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
-import type { IQuery } from "../../interfaces";
 import { handleBkashCallback } from "./payment-webhook.service";
 import { PaymentServices } from "./payment.service";
 
@@ -18,32 +17,32 @@ const getOrganizationId = (req: Request) => {
 	return organizationId;
 };
 
-const getRequestUser = (req: Request) => {
-	const user = req.user;
+// const getRequestUser = (req: Request) => {
+// 	const user = req.user;
 
-	if (!user) {
-		throw new AppError(
-			httpStatus.UNAUTHORIZED,
-			"User information is missing in the request.",
-		);
-	}
+// 	if (!user) {
+// 		throw new AppError(
+// 			httpStatus.UNAUTHORIZED,
+// 			"User information is missing in the request.",
+// 		);
+// 	}
 
-	return user;
-};
+// 	return user;
+// };
 
-const getPaymentQuery = (req: Request): IQuery => ({
-	searchTerm:
-		typeof req.query.searchTerm === "string" ? req.query.searchTerm : undefined,
-	page: typeof req.query.page === "string" ? req.query.page : undefined,
-	limit: typeof req.query.limit === "string" ? req.query.limit : undefined,
-	sortOrder:
-		typeof req.query.sortOrder === "string" ? req.query.sortOrder : undefined,
-	sortBy: typeof req.query.sortBy === "string" ? req.query.sortBy : undefined,
-});
+// const getPaymentQuery = (req: Request): IQuery => ({
+// 	searchTerm:
+// 		typeof req.query.searchTerm === "string" ? req.query.searchTerm : undefined,
+// 	page: typeof req.query.page === "string" ? req.query.page : undefined,
+// 	limit: typeof req.query.limit === "string" ? req.query.limit : undefined,
+// 	sortOrder:
+// 		typeof req.query.sortOrder === "string" ? req.query.sortOrder : undefined,
+// 	sortBy: typeof req.query.sortBy === "string" ? req.query.sortBy : undefined,
+// });
 
 const createCheckout = catchAsync(async (req: Request, res: Response) => {
 	const organizationId = getOrganizationId(req);
-	const user = getRequestUser(req);
+	const user = req.user!;
 
 	const payment = await PaymentServices.createCheckoutPayment(
 		organizationId,
@@ -62,12 +61,12 @@ const createCheckout = catchAsync(async (req: Request, res: Response) => {
 const getOrganizationPayments = catchAsync(
 	async (req: Request, res: Response) => {
 		const organizationId = getOrganizationId(req);
-		const user = getRequestUser(req);
+		const user = req.user!;
 
 		const { data, meta } = await PaymentServices.getOrganizationPayments(
 			organizationId,
 			user.userId,
-			getPaymentQuery(req),
+			req.query,
 		);
 
 		sendResponse(res, {
@@ -81,9 +80,10 @@ const getOrganizationPayments = catchAsync(
 );
 
 const getAllPayments = catchAsync(async (req: Request, res: Response) => {
-	const { data, meta } = await PaymentServices.getAllPayments(
-		getPaymentQuery(req),
-	);
+	const { data, meta } = await PaymentServices.getAllPayments(req.query);
+	//   const { data, meta } = await PaymentServices.getAllPayments(
+	//     getPaymentQuery(req),
+	//   );
 
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
@@ -96,7 +96,7 @@ const getAllPayments = catchAsync(async (req: Request, res: Response) => {
 
 const getSinglePayment = catchAsync(async (req: Request, res: Response) => {
 	const paymentId = req.params.paymentId as string;
-	const user = getRequestUser(req);
+	const user = req.user!;
 
 	const result = await PaymentServices.getSinglePayment(paymentId, user);
 

@@ -95,7 +95,7 @@ export const getBkashIdToken = async () => {
 		bkashIdToken = result.id_token;
 
 		return bkashIdToken;
-	} catch (error: unknown) {
+	} catch (error: any) {
 		if (error instanceof AppError) {
 			throw error;
 		}
