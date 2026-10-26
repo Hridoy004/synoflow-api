@@ -1,7 +1,7 @@
-import ejs from "ejs";
-import httpStatus from "http-status";
 import crypto from "node:crypto";
 import path from "node:path";
+import ejs from "ejs";
+import httpStatus from "http-status";
 import { Prisma } from "../../../generated/prisma/client";
 import {
 	OrganizationRole,
@@ -11,7 +11,7 @@ import {
 import config from "../../config";
 import { transporter } from "../../lib/nodemailer";
 import { prisma } from "../../lib/prisma";
-import { redisClient } from "../../lib/redis";
+import { ensureRedisConnected, redisClient } from "../../lib/redis";
 import { AppError } from "../../utils/AppError";
 import { PlanLimitService } from "../subscription/plan-limit.service";
 import type {
@@ -329,6 +329,7 @@ const inviteMember = async (
 	userId: string,
 	payload: IInviteOrganizationMemberPayload,
 ) => {
+	await ensureRedisConnected();
 	const organization = await prisma.organization.findFirst({
 		where: {
 			id: organizationId,
@@ -439,6 +440,7 @@ const acceptInvitation = async (
 	userEmail: string,
 	payload: IAcceptOrganizationInvitationPayload,
 ) => {
+	await ensureRedisConnected();
 	const tokenHash = hashInvitationToken(payload.token.trim());
 	const tokenKey = getInvitationKeys(
 		organizationId,

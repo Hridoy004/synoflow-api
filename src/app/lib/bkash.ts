@@ -1,10 +1,13 @@
 import httpStatus from "http-status";
 import config from "../config";
 import { AppError } from "../utils/AppError";
-import { redisClient } from "./redis";
+import { ensureRedisConnected, redisClient } from "./redis";
+
+const bkashRequestTimeoutMs = 5000;
 
 export const getBkashIdToken = async () => {
 	try {
+		await ensureRedisConnected();
 		const IdTokenKey = "bkash:idToken";
 		const RefreshTokenKey = "bkash:refreshToken";
 
@@ -34,6 +37,7 @@ export const getBkashIdToken = async () => {
 						app_secret: config.bkash_app_secret,
 						refresh_token: bkashRefreshToken,
 					}),
+					signal: AbortSignal.timeout(bkashRequestTimeoutMs),
 				},
 			);
 			if (!refreshTokenResponse.ok) {
@@ -72,6 +76,7 @@ export const getBkashIdToken = async () => {
 					app_key: config.bkash_app_key,
 					app_secret: config.bkash_app_secret,
 				}),
+				signal: AbortSignal.timeout(bkashRequestTimeoutMs),
 			},
 		);
 
@@ -95,7 +100,7 @@ export const getBkashIdToken = async () => {
 		bkashIdToken = result.id_token;
 
 		return bkashIdToken;
-	} catch (error: any) {
+	} catch (error: unknown) {
 		if (error instanceof AppError) {
 			throw error;
 		}
@@ -139,6 +144,7 @@ export const createBkashPayment = async (
 				intent: "sale",
 				merchantInvoiceNumber: payload.merchantInvoiceNumber,
 			}),
+			signal: AbortSignal.timeout(bkashRequestTimeoutMs),
 		},
 	);
 
@@ -181,6 +187,7 @@ export const executeBkashPayment = async (
 				"X-APP-Key": config.bkash_app_key,
 			},
 			body: JSON.stringify({ paymentID }),
+			signal: AbortSignal.timeout(bkashRequestTimeoutMs),
 		},
 	);
 

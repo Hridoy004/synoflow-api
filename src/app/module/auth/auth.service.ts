@@ -15,7 +15,7 @@ import config from "../../config";
 import { googleClient } from "../../lib/googleAuth";
 import { transporter } from "../../lib/nodemailer";
 import { prisma } from "../../lib/prisma";
-import { redisClient } from "../../lib/redis";
+import { ensureRedisConnected, redisClient } from "../../lib/redis";
 import { AppError } from "../../utils/AppError";
 import { jwtUtils } from "../../utils/jwt";
 import type {
@@ -41,6 +41,7 @@ const buildJwtPayload = (user: {
 });
 
 const registerUser = async (payload: IRegisterUserPayload) => {
+	await ensureRedisConnected();
 	const { name, password, user: userData } = payload;
 	const email = payload.email.trim().toLowerCase();
 
@@ -113,6 +114,7 @@ const registerUser = async (payload: IRegisterUserPayload) => {
 };
 
 const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
+	await ensureRedisConnected();
 	const otp = payload.otp;
 	const email = payload.email.trim().toLowerCase();
 
@@ -430,6 +432,7 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 };
 
 const forgotPassword = async (payload: IForgotPasswordPayload) => {
+	await ensureRedisConnected();
 	const { email } = payload;
 	const isUserExist = await prisma.user.findUnique({
 		where: {
@@ -493,6 +496,7 @@ const forgotPassword = async (payload: IForgotPasswordPayload) => {
 };
 
 const resetPassword = async (payload: IResetPasswordPayload) => {
+	await ensureRedisConnected();
 	const { email, otp, newPassword } = payload;
 
 	const isUserExist = await prisma.user.findUnique({

@@ -3,7 +3,7 @@ import config from "./app/config";
 import { startSubscriptionRenewalJob } from "./app/jobs/subscription-renewal.job";
 import { transporter } from "./app/lib/nodemailer";
 import { prisma } from "./app/lib/prisma";
-import { redisClient } from "./app/lib/redis";
+import { ensureRedisConnected } from "./app/lib/redis";
 import { seedSuperAdmin, seedTesterAdmin } from "./app/utils/seed";
 
 const PORT = config.port;
@@ -13,7 +13,7 @@ const main = async () => {
 		await prisma.$connect();
 		console.log("Connected to the database successfully.");
 
-		await redisClient.connect();
+		await ensureRedisConnected();
 		console.log("Redis Connected Successfully.");
 
 		await transporter.verify();

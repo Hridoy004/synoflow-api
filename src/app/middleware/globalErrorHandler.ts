@@ -40,8 +40,8 @@ export const globalErrorHandler = async (
 			errorMessage =
 				"Authentication failed against database server. Please Check Your Credentials";
 		} else if (err.errorCode === "P1001") {
-			statusCode = httpStatus.BAD_REQUEST;
-			errorMessage = "Can't reach database server";
+			statusCode = httpStatus.SERVICE_UNAVAILABLE;
+			errorMessage = "Database service is temporarily unavailable.";
 		}
 	} else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
 		statusCode = httpStatus.INTERNAL_SERVER_ERROR;
